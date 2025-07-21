@@ -1,4 +1,4 @@
-module github.com/aristosando/linux-chromium-benchmark
+module github.com/aristosando/chromebench
 
 go 1.24.5
 
