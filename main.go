@@ -19,8 +19,9 @@ func main() {
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.UserDataDir(dir),
-		chromedp.Flag("kiosk", true),
 		chromedp.Flag("headless", false), // Disable headless mode
+		// chromedp.Flag("kiosk", true),
+		chromedp.Flag("disable-gpu", false),
 	)
 
 	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
