@@ -63,13 +63,7 @@ func main() {
 	}
 
 	// Parse Chrome flags after "--"
-	args := flag.Args()
-	for i, arg := range args {
-		if arg == "--" && i+1 < len(args) {
-			harness.chromeFlags = args[i+1:]
-			break
-		}
-	}
+	harness.chromeFlags = flag.Args()
 
 	// Initialize video cache
 	videoCache, err := NewVideoCache()
