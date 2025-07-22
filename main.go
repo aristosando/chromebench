@@ -9,9 +9,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chromedp/cdproto/browser"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/systeminfo"
 	"github.com/chromedp/chromedp"
+)
+
+var (
+	version   = "dev"
+	commit    = "unknown"
+	buildDate = "unknown"
 )
 
 type TestResult struct {
@@ -41,6 +48,7 @@ type TestHarness struct {
 }
 
 func main() {
+	fmt.Printf("\nchromebench %s (%s/%s)\n", version, commit, buildDate)
 	var (
 		includeTests   = flag.String("include", "", "Comma-separated list of tests to include")
 		excludeTests   = flag.String("exclude", "", "Comma-separated list of tests to exclude")
@@ -236,23 +244,33 @@ func (h *TestHarness) RunTests() []TestResult {
 
 func printGPUInfo(ctx context.Context) {
 	// get gpu information
+	product := "unknown"
+	revision := "n/a"
+	params := []string{}
 	var gpu *systeminfo.GPUInfo
 	err := chromedp.Run(ctx,
 		chromedp.Navigate("about:blank"),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			c := chromedp.FromContext(ctx)
-			browser := cdp.WithExecutor(ctx, c.Browser)
-			gpuInfo, _, _, _, err := systeminfo.GetInfo().Do(browser)
+			browserCtx := cdp.WithExecutor(ctx, c.Browser)
+			var err error
+			_, product, revision, _, _, err = browser.GetVersion().Do(browserCtx)
 			if err != nil {
 				return err
 			}
-			gpu = gpuInfo
-			return nil
+			params, err = browser.GetBrowserCommandLine().Do(browserCtx)
+			if err != nil {
+				return err
+			}
+			gpu, _, _, _, err = systeminfo.GetInfo().Do(browserCtx)
+			return err
 		}),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("Browser: %s (%s)\n\n", product, revision)
+	fmt.Printf("Commandline: %v\n\n", params)
 	fmt.Println("\nGPU Information:")
 	if len(gpu.Devices) > 0 {
 		fmt.Printf("  GPU Vendor: %s\n", gpu.Devices[0].VendorString)
