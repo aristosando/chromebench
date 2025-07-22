@@ -21,71 +21,40 @@ func (t *MotionMarkTest) Run(ctx context.Context) (*TestResult, error) {
 		Metrics:   make(map[string]interface{}),
 	}
 
-	var score float64
-	var subscores map[string]interface{}
+	var scoreStr, confidenceStr string
+	var subtestNames, subtestScores, subtestConfidences []string
 
 	err := chromedp.Run(ctx,
-		// Navigate to the benchmark URL
 		chromedp.Navigate("https://browserbench.org/MotionMark/"),
-
-		// Wait for the "Run Benchmark" button to be visible
 		chromedp.WaitVisible(`#intro`),
-
-		// Click "Run Benchmark" button
 		chromedp.Evaluate(`benchmarkController.startBenchmark()`, nil),
-
-		// Wait for test to complete (this can take several minutes)
 		chromedp.WaitVisible(`#results`, chromedp.ByID),
 
-		// Extract overall score
-		chromedp.Evaluate(`
-			(() => {
-				const scoreElement = document.querySelector('.score-text');
-				if (scoreElement) {
-					return parseFloat(scoreElement.textContent);
-				}
-				// Fallback to looking for score in results
-				const resultsElement = document.querySelector('#results');
-				if (resultsElement) {
-					const text = resultsElement.textContent;
-					const match = text.match(/Score:\s*(\d+\.?\d*)/);
-					if (match) return parseFloat(match[1]);
-				}
-				return 0;
-			})()
-		`, &score),
+		// Extract overall score and confidence
+		chromedp.Text(`#results .score-container .score`, &scoreStr, chromedp.NodeVisible),
+		chromedp.Text(`#results .score-container .confidence`, &confidenceStr, chromedp.NodeVisible),
 
-		// Extract subscores
-		chromedp.Evaluate(`
-			(() => {
-				const scores = {};
-				const rows = document.querySelectorAll('tr.test-row');
-				rows.forEach(row => {
-					const name = row.querySelector('.test-name');
-					const score = row.querySelector('.score');
-					if (name && score) {
-						scores[name.textContent.trim()] = parseFloat(score.textContent);
-					}
-				});
-				
-				// Also check for any detailed results
-				const detailRows = document.querySelectorAll('.detailed-results tr');
-				detailRows.forEach(row => {
-					const cells = row.querySelectorAll('td');
-					if (cells.length >= 2) {
-						const name = cells[0].textContent.trim();
-						const value = cells[cells.length - 1].textContent.trim();
-						const numValue = parseFloat(value);
-						if (!isNaN(numValue) && name) {
-							scores[name] = numValue;
-						}
-					}
-				});
-				
-				return scores;
-			})()
-		`, &subscores),
+		// Extract subtest names, scores, and confidences (skip the first .suites-separator row)
+		chromedp.Evaluate(`Array.from(document.querySelectorAll('#results-header td')).slice(1).map(td => td.textContent.trim())`, &subtestNames),
+		chromedp.Evaluate(`Array.from(document.querySelectorAll('#results-score td')).slice(1).map(td => td.textContent.trim())`, &subtestScores),
+		chromedp.Evaluate(`Array.from(document.querySelectorAll('#results-data td span')).slice(1).map(span => span.textContent.trim())`, &subtestConfidences),
 	)
+
+	// Parse overall score
+	var score float64
+	fmt.Sscanf(scoreStr, "%f", &score)
+
+	// Parse subscores
+	subscores := make(map[string]interface{})
+	for i := 0; i < len(subtestNames) && i < len(subtestScores); i++ {
+		var val float64
+		fmt.Sscanf(subtestScores[i], "%f", &val)
+		subscores[subtestNames[i]] = val
+		// Optionally, also store confidence intervals
+		if i < len(subtestConfidences) {
+			subscores[subtestNames[i]+"_confidence"] = subtestConfidences[i]
+		}
+	}
 
 	result.EndTime = time.Now()
 

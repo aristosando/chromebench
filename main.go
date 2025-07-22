@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -308,8 +309,14 @@ func printSummary(results []TestResult) {
 
 		if len(result.Metrics) > 0 {
 			fmt.Println("  Metrics:")
-			for key, value := range result.Metrics {
-				fmt.Printf("    %s: %v\n", key, value)
+			// Sort keys alphabetically
+			keys := make([]string, 0, len(result.Metrics))
+			for key := range result.Metrics {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+			for _, key := range keys {
+				fmt.Printf("    %s: %v\n", key, result.Metrics[key])
 			}
 		}
 
