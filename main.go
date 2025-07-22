@@ -279,8 +279,14 @@ func printGPUInfo(ctx context.Context) {
 		var featureStatus map[string]string
 		err := json.Unmarshal(gpu.FeatureStatus, &featureStatus)
 		if err == nil {
-			for feature, status := range featureStatus {
-				fmt.Printf("  %s: %s\n", feature, status)
+			// Sort feature keys alphabetically
+			keys := make([]string, 0, len(featureStatus))
+			for k := range featureStatus {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, feature := range keys {
+				fmt.Printf("  %s: %s\n", feature, featureStatus[feature])
 			}
 		} else {
 			fmt.Printf("  Error parsing gpu feature status: %v\n", err)
