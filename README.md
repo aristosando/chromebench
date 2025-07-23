@@ -5,10 +5,7 @@ A Chrome performance test harness for benchmarking graphics and video playback p
 ## Features
 
 - **MotionMark Benchmark**: Runs the MotionMark 1.3 graphics benchmark
-- **Video Playback Tests**: Tests video playback with frame drop detection
-  - 640x360 H.264
-  - 1080p H.264  
-  - 4K H.264
+- **Video Playback Tests**: Tests video playback with frame drop detection at 24fps, 30fps, and 60fps for 240p, 720p, 1080p, and 2160p (4K)
 - **CPU Monitoring**: Tracks CPU usage during all tests
 - **Flexible Test Selection**: Include/exclude specific tests
 - **Chrome Flag Support**: Pass custom Chrome flags for testing different configurations
