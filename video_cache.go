@@ -116,7 +116,6 @@ func (vc *VideoCache) DownloadVideo(videoInfo VideoInfo) error {
 
 	// Check if already exists
 	if vc.IsVideoCached(videoInfo) {
-		fmt.Printf("Video %s already cached at %s\n", videoInfo.Name, localPath)
 		return nil
 	}
 
@@ -174,15 +173,20 @@ func (vc *VideoCache) DownloadVideo(videoInfo VideoInfo) error {
 }
 
 func (vc *VideoCache) EnsureAllVideos() error {
-	fmt.Println("Checking video cache...")
+	downloadedAny := false
 
 	for _, video := range testVideos {
+		if !vc.IsVideoCached(video) {
+			downloadedAny = true
+		}
 		if err := vc.DownloadVideo(video); err != nil {
 			return fmt.Errorf("failed to download %s: %v", video.Name, err)
 		}
 	}
 
-	fmt.Println("All videos cached successfully")
+	if downloadedAny {
+		fmt.Println("All videos cached successfully")
+	}
 	return nil
 }
 

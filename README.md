@@ -13,48 +13,50 @@ A Chrome performance test harness for benchmarking graphics and video playback p
 
 ## Usage
 
+Download pre-built binaries from the [Releases page](https://github.com/aristosando/chromebench/releases).
+
 ### List available tests
 ```bash
-go run . -list
+chromebench -list
 ```
 
 ### Download test videos
 ```bash
-go run . -download-videos
+chromebench -download-videos
 ```
 
 Videos are cached in `~/.chromebench/videos/`
 
 ### Run all tests
 ```bash
-go run .
+chromebench
 ```
 
 ### Run specific tests
 ```bash
-go run . -include "motionmark,video-1080p-h264"
+chromebench -include "motionmark,video-1080p-h264"
 ```
 
 ### Exclude tests
 ```bash
-go run . -exclude "video-4k-h264"
+chromebench -exclude "video-4k-h264"
 ```
 
 ### Run with custom Chrome flags
 ```bash
 # Test with hardware video decode disabled
-go run . -- --disable-accelerated-video-decode
+chromebench -- --disable-accelerated-video-decode
 
 # Test with multiple flags
-go run . -- --disable-gpu-rasterization --disable-gpu
+chromebench -- --disable-gpu-rasterization --disable-gpu
 
 # Test with flags containing commas
-go run . -- --enable-features=VaapiVideoEncoder,Vulkan --disable-features=UseChromeOSDirectVideoDecoder
+chromebench -- --enable-features=VaapiVideoEncoder,Vulkan --disable-features=UseChromeOSDirectVideoDecoder
 ```
 
 ### Run in headless mode
 ```bash
-go run . -headless
+chromebench -headless
 ```
 
 ## Example Output
