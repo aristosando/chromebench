@@ -208,8 +208,8 @@ func (h *TestHarness) RunTests() []TestResult {
 		// Create a new context for each test with timeout
 		testCtx, testCancel := context.WithTimeout(ctx, 20*time.Minute)
 
-		// Start CPU monitoring
-		cpuMonitor := NewCPUMonitor()
+		// Start Chrome-specific CPU monitoring
+		cpuMonitor := NewChromeCPUMonitor()
 		cpuMonitor.Start()
 
 		result, err := test.Run(testCtx)

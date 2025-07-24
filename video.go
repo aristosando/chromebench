@@ -104,7 +104,9 @@ func (t *VideoTest) Run(ctx context.Context) (*TestResult, error) {
 				});
 				
 				video.addEventListener('waiting', () => {
-					errors.push({type: 'waiting', time: video.currentTime});
+					if (video.currentTime > 0) {
+						errors.push({type: 'waiting', time: video.currentTime});
+					}
 				});
 				
 				// Expose results for extraction
@@ -215,17 +217,13 @@ func (t *VideoTest) Run(ctx context.Context) (*TestResult, error) {
 		result.Metrics["video_height"] = videoStats["videoHeight"]
 		result.Metrics["errors"] = videoStats["errors"]
 		
-		// Check for any errors (ignore waiting events at start)
+		// Check for any errors
 		if errors, ok := videoStats["errors"].([]interface{}); ok && len(errors) > 0 {
-			// Filter out benign errors
+			// Check for critical errors (video_error type)
 			var criticalErrors []interface{}
 			for _, err := range errors {
 				if errMap, ok := err.(map[string]interface{}); ok {
 					errType := errMap["type"]
-					// Waiting at time 0 is normal for video loading
-					if errType == "waiting" && getFloat64(errMap["time"]) == 0 {
-						continue
-					}
 					// Video errors are critical
 					if errType == "video_error" {
 						criticalErrors = append(criticalErrors, err)
